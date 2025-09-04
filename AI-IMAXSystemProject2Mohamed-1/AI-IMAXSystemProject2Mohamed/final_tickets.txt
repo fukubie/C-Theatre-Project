@@ -1,0 +1,11 @@
+======= YOUR TICKETS =======
+
+-----------------------------
+Movie: Avatar
+Age Category: Adult
+Quantity: 4
+Price per Ticket: $20.00
+Total Cost: $80.00
+Seats: A3 A4 A9 A10 
+-----------------------------
+=============================
