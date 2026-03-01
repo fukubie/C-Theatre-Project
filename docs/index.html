@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C-Theatre-Project | Movie Theatre System</title>
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #1a1a20;
+      --text: #e8e6e3;
+      --muted: #8b8685;
+      --accent: #c9a227;
+      --accent-dim: #8a7428;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 2rem 1rem;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-top: 0;
+      color: var(--accent);
+    }
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      color: var(--text);
+    }
+    p { color: var(--muted); margin: 0.5rem 0; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, .path {
+      background: var(--surface);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    ul { color: var(--muted); padding-left: 1.25rem; }
+    .badge {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: var(--bg);
+      padding: 0.2em 0.5em;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <span class="badge">C++</span>
+  <h1>C-Theatre-Project</h1>
+  <p>Console-based movie theatre system with ticketing and concessions.</p>
+
+  <h2>Features</h2>
+  <ul>
+    <li><strong>Ticketing</strong> — Pick from 5 movies, adult/child/senior, visual seating (rows A–C, 10 seats).</li>
+    <li><strong>Concessions</strong> — Combos, beverages, popcorn with running total.</li>
+    <li><strong>Receipt</strong> — Running total, 7% sales tax, final receipt to <code>final_tickets.txt</code>.</li>
+  </ul>
+
+  <h2>Build &amp; run</h2>
+  <p><strong>Visual Studio:</strong> Open <span class="path">AI-IMAXSystemProject2Mohamed-1/AI-IMAXSystemProject2Mohamed/AI-IMAXSystemProject2Mohamed.sln</span>, build and run.</p>
+  <p><strong>g++:</strong></p>
+  <pre style="background: var(--surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code>cd AI-IMAXSystemProject2Mohamed-1/AI-IMAXSystemProject2Mohamed
+g++ -std=c++11 -o Theatre AI-IMAXSystemProject2Mohamed.cpp
+./Theatre   # or Theatre.exe on Windows</code></pre>
+
+  <h2>Repository</h2>
+  <p><a href="../">View source on GitHub</a></p>
+</body>
+</html>

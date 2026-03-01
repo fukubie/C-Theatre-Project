@@ -1,0 +1,30 @@
+# Build outputs
+x64/
+x86/
+[Dd]ebug/
+[Rr]elease/
+*.obj
+*.ilk
+*.pdb
+*.exe
+*.log
+*.idb
+*.tlog/
+*.lastbuildstate
+*.recipe
+AI-IMAXS.a016433b/
+
+# User-specific
+*.vcxproj.user
+*.suo
+*.user
+
+# Generated output
+final_tickets.txt
+
+# Windows
+nul
+Thumbs.db
+
+# macOS
+.DS_Store
