@@ -39,18 +39,19 @@ g++ -std=c++11 -o Theatre AI-IMAXSystemProject2Mohamed.cpp
 Theatre.exe   # Windows
 ```
 
-## GitHub Pages
+## GitHub Pages — run in the browser
 
-Documentation and project overview are published on **GitHub Pages**:
+The project includes a **browser terminal** that runs the same flow (ticketing + concessions + receipt) so anyone can try it on GitHub Pages.
 
-**https://\<your-username\>.github.io/C-Theatre-Project/**
+- **Live app:** `https://<your-username>.github.io/C-Theatre-Project/`
+- Use the input at the bottom: type your choice and press **Enter** (e.g. `1` for a movie, `A`/`C`/`S` for age, `A1` for seat, then concessions and `0` to finish and see the receipt).
 
-To enable:
+To enable Pages:
 
 1. In the repo: **Settings → Pages**.
-2. Set **Source** to **Deploy from a branch**.
-3. Branch: **main** (or **master**), folder: **/docs**.
-4. Save; the site will be built from the `docs/` folder.
+2. **Source:** Deploy from a branch.
+3. Branch: **main**, folder: **/docs**.
+4. Save; the site is built from the `docs/` folder.
 
 ## License
 

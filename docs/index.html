@@ -3,81 +3,488 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C-Theatre-Project | Movie Theatre System</title>
+  <title>AAAI-MAXXX Theatre | Browser Terminal</title>
   <style>
     :root {
-      --bg: #0f0f12;
-      --surface: #1a1a20;
-      --text: #e8e6e3;
-      --muted: #8b8685;
-      --accent: #c9a227;
-      --accent-dim: #8a7428;
+      --bg: #0c0c0f;
+      --surface: #141418;
+      --text: #e0e0e0;
+      --green: #33cc66;
+      --muted: #888;
+      --border: #2a2a32;
     }
     * { box-sizing: border-box; }
     body {
-      font-family: "Segoe UI", system-ui, sans-serif;
+      font-family: "Consolas", "Monaco", "Courier New", monospace;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
       margin: 0;
-      padding: 2rem 1rem;
+      padding: 1rem;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .term-wrap {
       max-width: 720px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    h1 {
-      font-size: 1.75rem;
-      font-weight: 600;
-      margin-top: 0;
-      color: var(--accent);
-    }
-    h2 {
-      font-size: 1.15rem;
-      font-weight: 600;
-      margin-top: 2rem;
-      color: var(--text);
-    }
-    p { color: var(--muted); margin: 0.5rem 0; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    code, .path {
+      margin: 0 auto;
       background: var(--surface);
-      padding: 0.15em 0.4em;
-      border-radius: 4px;
-      font-size: 0.9em;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
-    ul { color: var(--muted); padding-left: 1.25rem; }
-    .badge {
-      display: inline-block;
-      background: var(--accent-dim);
-      color: var(--bg);
-      padding: 0.2em 0.5em;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 600;
+    .term-header {
+      background: var(--border);
+      padding: 6px 12px;
+      font-size: 12px;
+      color: var(--muted);
     }
+    .term-body {
+      padding: 12px 16px;
+      min-height: 360px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .term-body .line {
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin: 2px 0;
+    }
+    .term-body .line.out { color: var(--green); }
+    .term-body .line.err { color: #e66; }
+    .term-body .line.prompt { color: var(--muted); }
+    .term-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .term-line .prompt-char { color: var(--green); flex-shrink: 0; }
+    .term-line input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+    .term-line input::placeholder { color: var(--muted); }
+    .intro { color: var(--muted); margin-bottom: 1rem; font-size: 12px; }
+    .intro a { color: var(--green); }
   </style>
 </head>
 <body>
-  <span class="badge">C++</span>
-  <h1>C-Theatre-Project</h1>
-  <p>Console-based movie theatre system with ticketing and concessions.</p>
+  <div class="intro">AAAI-MAXXX Theatre — run in browser. Type your choice and press <kbd>Enter</kbd>. <a href="../">View source on GitHub</a></div>
+  <div class="term-wrap">
+    <div class="term-header">terminal — C-Theatre-Project</div>
+    <div class="term-body" id="out"></div>
+    <div class="term-line">
+      <span class="prompt-char" id="promptLabel">&gt;</span>
+      <input type="text" id="input" autocomplete="off" spellcheck="false" placeholder="Enter selection...">
+    </div>
+  </div>
 
-  <h2>Features</h2>
-  <ul>
-    <li><strong>Ticketing</strong> — Pick from 5 movies, adult/child/senior, visual seating (rows A–C, 10 seats).</li>
-    <li><strong>Concessions</strong> — Combos, beverages, popcorn with running total.</li>
-    <li><strong>Receipt</strong> — Running total, 7% sales tax, final receipt to <code>final_tickets.txt</code>.</li>
-  </ul>
+  <script>
+(function() {
+  const SALES_TAX = 0.07;
+  const ROWS = 3, COLUMNS = 10, MAX_MOVIES = 5, MAX_SEATS = 30;
+  const MOVIES = ["Avatar", "The Smurfs", "Sahara", "Titanic", "The Matrix"];
+  const ADULT = 20, CHILD = 10, SENIOR = 5;
+  const COMBO_NAMES = ["Lg.Popcorn + Lg.Drink + Candy", "Sliders + Curly Fries + Lg.Drink", "2 Hot Dogs + Lg.Drink", "Movie Nachos + Lg.Drink + Candy", "Lg. Popcorn + 2 Lg.Drinks", "Kids Pack", "Snack Pack Combo"];
+  const COMBO_PRICES = [22.97, 23.47, 21.47, 20.97, 24.97, 8.49, 35.95];
+  const BEV_NAMES = ["Coca-Cola", "ICEE", "Bottled water", "Coffee", "Raw Milk"];
+  const BEV_PRICES = [6.99, 7.49, 5.49, 4.49, 15.99];
+  const POPCORN_NAMES = ["Lg. Popcorn", "Mid. Popcorn", "Sm. Popcorn", "Butter"];
+  const POPCORN_PRICES = [11.49, 9.99, 8.99, 1.99];
 
-  <h2>Build &amp; run</h2>
-  <p><strong>Visual Studio:</strong> Open <span class="path">AI-IMAXSystemProject2Mohamed-1/AI-IMAXSystemProject2Mohamed/AI-IMAXSystemProject2Mohamed.sln</span>, build and run.</p>
-  <p><strong>g++:</strong></p>
-  <pre style="background: var(--surface); padding: 1rem; border-radius: 6px; overflow-x: auto;"><code>cd AI-IMAXSystemProject2Mohamed-1/AI-IMAXSystemProject2Mohamed
-g++ -std=c++11 -o Theatre AI-IMAXSystemProject2Mohamed.cpp
-./Theatre   # or Theatre.exe on Windows</code></pre>
+  function rand(max) { return Math.floor(Math.random() * max); }
 
-  <h2>Repository</h2>
-  <p><a href="../">View source on GitHub</a></p>
+  let state = 'TICKET_MENU';
+  let runningTotal = 0;
+  let tickets = [];
+  let concessions = [];
+  let movs = [];  // [movie][row][col] = reserved
+  let movtix = []; // available per movie
+  let sel = -1, qty = 0, age = '', ageLabel = '';
+  let seatsToPick = 0;
+  let reservedSeats = [];
+
+  function initSeating() {
+    movs = [];
+    movtix = [];
+    for (let m = 0; m < MAX_MOVIES; m++) {
+      const grid = Array(ROWS).fill(null).map(() => Array(COLUMNS).fill(false));
+      const n = rand(ROWS * COLUMNS);
+      let c = 0;
+      while (c < n) {
+        const r = rand(ROWS), col = rand(COLUMNS);
+        if (!grid[r][col]) { grid[r][col] = true; c++; }
+      }
+      movs.push(grid);
+      let avail = 0;
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLUMNS; c++) if (!grid[r][c]) avail++;
+      movtix.push(avail);
+    }
+  }
+
+  function print(str, cls = 'out') {
+    const out = document.getElementById('out');
+    const line = document.createElement('div');
+    line.className = 'line ' + cls;
+    line.textContent = str;
+    out.appendChild(line);
+    out.scrollTop = out.scrollHeight;
+  }
+
+  function printTicketMenu() {
+    print('');
+    print('Welcome to AAAI-MAXXX Theatre System ticketing.');
+    print('');
+    print('   |-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*|');
+    for (let i = 0; i < MAX_MOVIES; i++)
+      print('   | ' + (i+1) + ' -  |' + MOVIES[i].padEnd(25) + '...' + movtix[i].toString().padStart(2) + '.........PG |');
+    print('   |                                                           |');
+    print('   |        (A)dult - $20 | (C)hild - $10 | (S)enior - $5      |');
+    print('   |                                                           |');
+    print('   | 0 - End Selection ......................................  |');
+    print('   |*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-*--*-*|');
+    print('');
+    print('Which movie would you like to see?');
+    print('Enter selection: ');
+  }
+
+  function seatingChart(movieIdx) {
+    const g = movs[movieIdx];
+    let s = '\nSeating Chart for ' + MOVIES[movieIdx] + ':\n\n     ';
+    for (let c = 0; c < COLUMNS; c++) s += (c+1).toString().padStart(3) + '  ';
+    s += '\n   *';
+    for (let c = 0; c < COLUMNS - 1; c++) s += '----*';
+    s += '----*\n';
+    for (let r = 0; r < ROWS; r++) {
+      s += ' ' + String.fromCharCode(65 + r) + ' |';
+      for (let c = 0; c < COLUMNS; c++) s += ' ' + (g[r][c] ? ' X' : ' O') + '  |';
+      s += '\n';
+      if (r < ROWS - 1) {
+        s += '   *';
+        for (let c = 0; c < COLUMNS - 1; c++) s += '----*';
+        s += '----*\n';
+      }
+    }
+    s += '   *';
+    for (let c = 0; c < COLUMNS - 1; c++) s += '----*';
+    s += '----*\n';
+    return s;
+  }
+
+  function concMenu() {
+    print('');
+    print('Welcome to AAAI-MAXXX Theatre System concessions.');
+    print('');
+    print('   |-*-*-*-*-*-*-*-*-*-*-*-*-*-*-|');
+    print('   | 1 - Combos ................ |');
+    print('   | 2 - Beverages ............. |');
+    print('   | 3 - Popcorn ............... |');
+    print('   | 0 - End Selection ......... |');
+    print('   |*-*-*-*-*-*-*-*-*-*-*-*-*-*-*|');
+    print('');
+    print('What can I get for you? ');
+  }
+
+  function showRunningTotal() {
+    const tax = runningTotal * SALES_TAX;
+    const total = runningTotal + tax;
+    print('');
+    print('Running Total: $' + runningTotal.toFixed(2));
+    print('Sales Tax: $' + tax.toFixed(2));
+    print('Total with Tax: $' + total.toFixed(2));
+  }
+
+  function finalReceipt() {
+    print('');
+    print('======= FINAL RECEIPT =======');
+    if (tickets.length) {
+      print('\n--- TICKETS ---');
+      for (const t of tickets) {
+        print('Movie: ' + t.movieName);
+        print('Age Category: ' + t.ageLabel);
+        print('Quantity: ' + t.quantity);
+        print('Price per Ticket: $' + t.pricePerTicket.toFixed(2));
+        print('Seats: ' + t.seats.map(([r,c]) => String.fromCharCode(65+r) + (c+1)).join(' '));
+        print('Subtotal: $' + (t.quantity * t.pricePerTicket).toFixed(2));
+      }
+    }
+    if (concessions.length) {
+      print('\n--- CONCESSIONS ---');
+      for (const c of concessions) {
+        print(c.name + ' x' + c.quantity + ' @ $' + c.price.toFixed(2) + ' each');
+        print('Subtotal: $' + (c.quantity * c.price).toFixed(2));
+      }
+    }
+    const tax = runningTotal * SALES_TAX;
+    const total = runningTotal + tax;
+    print('\n-----------------------------');
+    print('Running Total: $' + runningTotal.toFixed(2));
+    print('Sales Tax: $' + tax.toFixed(2));
+    print('Total with Tax: $' + total.toFixed(2));
+    print('=============================');
+    print('');
+    print('Thank you for visiting AAAI-MAXXX Theatre. Enjoy your movie!');
+    print('');
+  }
+
+  const inputEl = document.getElementById('input');
+  const outEl = document.getElementById('out');
+
+  function handleInput() {
+    const raw = inputEl.value.trim();
+    inputEl.value = '';
+    if (!raw && state !== 'SEAT') return;
+    const line = document.createElement('div');
+    line.className = 'line prompt';
+    line.textContent = '> ' + raw;
+    outEl.appendChild(line);
+    outEl.scrollTop = outEl.scrollHeight;
+
+    const num = parseInt(raw, 10);
+    const lower = raw.toLowerCase();
+
+    if (state === 'TICKET_MENU') {
+      if (raw === '0') {
+        state = 'CONCESSIONS';
+        concMenu();
+        return;
+      }
+      if (num >= 1 && num <= MAX_MOVIES) {
+        sel = num - 1;
+        if (movtix[sel] <= 0) {
+          print('Not enough tickets available for ' + MOVIES[sel] + '.');
+          return;
+        }
+        print(seatingChart(sel));
+        print('How many tickets do you want for ' + MOVIES[sel] + '?');
+        print('Enter quantity: ');
+        state = 'TICKET_QTY';
+      } else {
+        print('Invalid selection. Enter 1-5 for a movie or 0 to finish tickets.');
+      }
+      return;
+    }
+
+    if (state === 'TICKET_QTY') {
+      if (isNaN(num) || num < 1) {
+        print('Invalid input. Please enter a number (quantity): ');
+        return;
+      }
+      if (num > movtix[sel]) {
+        print('Not enough tickets available. Available: ' + movtix[sel]);
+        return;
+      }
+      qty = num;
+      print('Enter (A)dult, (C)hild, or (S)enior: ');
+      state = 'TICKET_AGE';
+      return;
+    }
+
+    if (state === 'TICKET_AGE') {
+      const a = lower === 'a' ? 'a' : lower === 'c' ? 'c' : lower === 's' ? 's' : '';
+      if (!a) {
+        print('Invalid age category. Please enter A, C, or S.');
+        return;
+      }
+      age = a;
+      ageLabel = a === 'a' ? 'Adult' : a === 'c' ? 'Child' : 'Senior';
+      const price = age === 'a' ? ADULT : age === 'c' ? CHILD : SENIOR;
+      const cost = price * qty;
+      runningTotal += cost;
+      print('');
+      print('Tickets for ' + MOVIES[sel] + ':');
+      print('Age Category: ' + ageLabel + ', Quantity: ' + qty + ', Price per Ticket: $' + price.toFixed(2) + ', Total: $' + cost.toFixed(2));
+      seatsToPick = qty;
+      reservedSeats = [];
+      print(seatingChart(sel));
+      print('Select a seat (e.g., A1, B3). You need ' + qty + ' seat(s): ');
+      state = 'SEAT';
+      return;
+    }
+
+    if (state === 'SEAT') {
+      const match = raw.match(/^([A-Ca-c])\s*(\d{1,2})$/);
+      if (!match) {
+        print('Invalid seat. Use row A-C and column 1-10 (e.g. A1, B3): ');
+        return;
+      }
+      const row = match[1].toUpperCase().charCodeAt(0) - 65;
+      const col = parseInt(match[2], 10) - 1;
+      if (col < 0 || col >= COLUMNS) {
+        print('Column must be 1-10.');
+        return;
+      }
+      if (movs[sel][row][col]) {
+        print('Seat ' + match[1].toUpperCase() + (col+1) + ' is already reserved. Choose another.');
+        return;
+      }
+      movs[sel][row][col] = true;
+      reservedSeats.push([row, col]);
+      movtix[sel]--;
+      print('Seat ' + match[1].toUpperCase() + (col+1) + ' reserved.');
+      if (reservedSeats.length >= qty) {
+        const price = age === 'a' ? ADULT : age === 'c' ? CHILD : SENIOR;
+        tickets.push({
+          movieName: MOVIES[sel],
+          ageCategory: age,
+          ageLabel,
+          quantity: qty,
+          pricePerTicket: price,
+          seats: reservedSeats.slice()
+        });
+        showRunningTotal();
+        print('');
+        print('Do you want to select more tickets? (y/n): ');
+        state = 'MORE_TICKETS';
+      } else {
+        print(seatingChart(sel));
+        print('Select another seat (' + (qty - reservedSeats.length) + ' more): ');
+      }
+      return;
+    }
+
+    if (state === 'MORE_TICKETS') {
+      if (lower === 'y' || lower === 'yes') {
+        state = 'TICKET_MENU';
+        printTicketMenu();
+      } else if (lower === 'n' || lower === 'no') {
+        state = 'CONCESSIONS';
+        concMenu();
+      } else {
+        print('Enter y or n: ');
+      }
+      return;
+    }
+
+    if (state === 'CONCESSIONS') {
+      if (num === 0) {
+        state = 'DONE';
+        finalReceipt();
+        return;
+      }
+      if (num === 1) {
+        state = 'COMBO';
+        print('');
+        print('   |-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-|');
+        for (let i = 0; i < 7; i++) print('   | ' + (i+1) + ' - ' + COMBO_NAMES[i].padEnd(42) + ' $' + COMBO_PRICES[i].toFixed(2) + ' |');
+        print('   | 0 - End Selection .......................total  |');
+        print('   |*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*|');
+        print('');
+        print('Please select a Combo: ');
+      } else if (num === 2) {
+        state = 'BEV';
+        print('');
+        print('   |-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- |');
+        for (let i = 0; i < 5; i++) print('   | ' + (i+1) + ' - ' + BEV_NAMES[i].padEnd(28) + ' $' + BEV_PRICES[i].toFixed(2) + ' |');
+        print('   | 0 - End Selection .......total |');
+        print('   |*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* |');
+        print('');
+        print('Please select a Beverage: ');
+      } else if (num === 3) {
+        state = 'POPCORN';
+        print('');
+        print('   |-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*|');
+        for (let i = 0; i < 4; i++) print('   | ' + (i+1) + ' - ' + POPCORN_NAMES[i].padEnd(28) + '$' + POPCORN_PRICES[i].toFixed(2) + ' |');
+        print('   | 0 - End Selection ........ total |');
+        print('   |*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-|');
+        print('');
+        print('Please select a Popcorn option: ');
+      } else {
+        print('Enter 1 (Combos), 2 (Beverages), 3 (Popcorn), or 0 to finish: ');
+      }
+      return;
+    }
+
+    if (state === 'COMBO') {
+      if (num === 0) { state = 'CONCESSIONS'; concMenu(); return; }
+      if (num >= 1 && num <= 7) {
+        print('Enter quantity: ');
+        state = 'COMBO_QTY';
+        sel = num - 1;
+        return;
+      }
+      print('Enter 1-7 for a combo or 0 to go back: ');
+      return;
+    }
+    if (state === 'COMBO_QTY') {
+      if (isNaN(num) || num < 1) { print('Enter a positive quantity: '); return; }
+      const price = COMBO_PRICES[sel];
+      runningTotal += price * num;
+      concessions.push({ name: COMBO_NAMES[sel], quantity: num, price });
+      print('Added ' + COMBO_NAMES[sel] + ' x' + num + ' to the order.');
+      showRunningTotal();
+      state = 'CONCESSIONS';
+      concMenu();
+      return;
+    }
+
+    if (state === 'BEV') {
+      if (num === 0) { state = 'CONCESSIONS'; concMenu(); return; }
+      if (num >= 1 && num <= 5) {
+        print('Enter quantity: ');
+        state = 'BEV_QTY';
+        sel = num - 1;
+        return;
+      }
+      print('Enter 1-5 for a beverage or 0 to go back: ');
+      return;
+    }
+    if (state === 'BEV_QTY') {
+      if (isNaN(num) || num < 1) { print('Enter a positive quantity: '); return; }
+      const price = BEV_PRICES[sel];
+      runningTotal += price * num;
+      concessions.push({ name: BEV_NAMES[sel], quantity: num, price });
+      print('Added ' + BEV_NAMES[sel] + ' x' + num + ' to the order.');
+      showRunningTotal();
+      state = 'CONCESSIONS';
+      concMenu();
+      return;
+    }
+
+    if (state === 'POPCORN') {
+      if (num === 0) { state = 'CONCESSIONS'; concMenu(); return; }
+      if (num >= 1 && num <= 4) {
+        print('Enter quantity: ');
+        state = 'POPCORN_QTY';
+        sel = num - 1;
+        return;
+      }
+      print('Enter 1-4 for popcorn or 0 to go back: ');
+      return;
+    }
+    if (state === 'POPCORN_QTY') {
+      if (isNaN(num) || num < 1) { print('Enter a positive quantity: '); return; }
+      const price = POPCORN_PRICES[sel];
+      runningTotal += price * num;
+      concessions.push({ name: POPCORN_NAMES[sel], quantity: num, price });
+      print('Added ' + POPCORN_NAMES[sel] + ' x' + num + ' to the order.');
+      showRunningTotal();
+      state = 'CONCESSIONS';
+      concMenu();
+      return;
+    }
+
+    if (state === 'DONE') {
+      print('Session ended. Refresh the page to start over.');
+    }
+  }
+
+  inputEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleInput();
+    }
+  });
+  inputEl.focus();
+
+  initSeating();
+  printTicketMenu();
+})();
+  </script>
 </body>
 </html>
