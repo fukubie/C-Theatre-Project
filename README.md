@@ -43,15 +43,8 @@ Theatre.exe   # Windows
 
 The project includes a **browser terminal** that runs the same flow (ticketing + concessions + receipt) so anyone can try it on GitHub Pages.
 
-- **Live app:** `https://fukubie.github.io/C-Theatre-Project/`
+- **Live app:** https://fukubie.github.io/C-Theatre-Project/
 - Use the input at the bottom: type your choice and press **Enter** (e.g. `1` for a movie, `A`/`C`/`S` for age, `A1` for seat, then concessions and `0` to finish and see the receipt).
-
-To enable Pages:
-
-1. In the repo: **Settings → Pages**.
-2. **Source:** Deploy from a branch.
-3. Branch: **main**, folder: **/docs**.
-4. Save; the site is built from the `docs/` folder.
 
 ## License
 
